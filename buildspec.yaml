@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 158388008894.dkr.ecr.us-east-2.amazonaws.com
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - docker build -t ecs-cicd-app .
+      - docker tag ecs-cicd-app:latest 158388008894.dkr.ecr.us-east-2.amazonaws.com/ecs-cicd-app:latest
+
+  post_build:
+    commands:
+      - echo Pushing Docker image...
+      - docker push 158388008894.dkr.ecr.us-east-2.amazonaws.com/ecs-cicd-app:latest
+      - printf '[{"name":"app","imageUri":"158388008894.dkr.ecr.us-east-2.amazonaws.com/ecs-cicd-app:latest"}]' > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
